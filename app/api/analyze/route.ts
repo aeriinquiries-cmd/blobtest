@@ -1,29 +1,31 @@
 import { NextResponse } from "next/server";
 
-function cors(body: any, status = 200) {
-  return NextResponse.json(body, {
-    status,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
-}
-
 export async function POST(req: Request) {
   try {
     const { imageUrl } = await req.json();
 
     if (!imageUrl) {
-      return cors({ error: "Missing imageUrl" }, 400);
+      return NextResponse.json({ error: "Missing imageUrl" }, { status: 400 });
     }
 
-    // 🔥 FOR NOW (TEST)
-    // later replace with real AI call
-    return cors({
-      result: `Image received: ${imageUrl}`,
+    // 🔥 CALL PUTER AI
+    const aiRes = await fetch("https://api.puter.com/v1/ai/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: "What do you see?",
+        image: imageUrl,
+        model: "google/gemini-3.1-flash-image-preview",
+      }),
     });
 
+    const data = await aiRes.json();
+
+    return NextResponse.json({ result: data });
+
   } catch (err: any) {
-    return cors({ error: err.message }, 500);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
