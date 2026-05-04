@@ -8,9 +8,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing imageUrl" }, { status: 400 });
     }
 
-    // 🔥 TEMP TEST RESPONSE
+    const res = await fetch("https://api.puter.com/v2/ai/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: "What is in this image?",
+        image: imageUrl,
+        model: "google/gemini-3.1-flash-image-preview"
+      }),
+    });
+
+    const data = await res.json();
+
     return NextResponse.json({
-      result: "Image received: " + imageUrl
+      result: data.output || JSON.stringify(data)
     });
 
   } catch (err: any) {
