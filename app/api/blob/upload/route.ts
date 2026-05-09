@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 
 export async function POST(req: Request) {
@@ -6,26 +5,57 @@ export async function POST(req: Request) {
     const { base64, mimeType } = await req.json();
 
     if (!base64) {
-      return NextResponse.json({ error: "Missing base64" }, { status: 400 });
+      return new Response(
+        JSON.stringify({ error: "Missing base64" }),
+        {
+          status: 400,
+          headers: corsHeaders(),
+        }
+      );
     }
 
-    const cleanBase64 = base64.includes("base64,")
-      ? base64.split("base64,")[1]
-      : base64;
+    const buffer = Buffer.from(base64, "base64");
 
-    const buffer = Buffer.from(cleanBase64, "base64");
+    const blob = await put(
+      `img-${Date.now()}.jpeg`,
+      buffer,
+      {
+        access: "public",
+        contentType: mimeType || "image/jpeg",
+      }
+    );
 
-    const ext = mimeType?.split("/")[1] || "jpg";
-    const filename = `img-${Date.now()}.${ext}`;
-
-    const blob = await put(filename, buffer, {
-      access: "public",
-      contentType: mimeType || "image/jpeg",
-    });
-
-    return NextResponse.json({ url: blob.url });
-
+    return new Response(
+      JSON.stringify({ url: blob.url }),
+      {
+        status: 200,
+        headers: corsHeaders(),
+      }
+    );
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return new Response(
+      JSON.stringify({ error: err.message }),
+      {
+        status: 500,
+        headers: corsHeaders(),
+      }
+    );
   }
+}
+
+// 🔥 ADD THIS
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+}
+
+// 🔥 ADD THIS (VERY IMPORTANT)
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders(),
+  });
 }
