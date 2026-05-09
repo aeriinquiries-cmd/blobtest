@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   }
 }
 
-// 🔥 ADD THIS
+// CORS HEADERS
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -52,7 +52,7 @@ function corsHeaders() {
   };
 }
 
-// 🔥 ADD THIS (VERY IMPORTANT)
+// OPTIONS (CORS preflight)
 export async function OPTIONS() {
   return new Response(null, {
     status: 200,
